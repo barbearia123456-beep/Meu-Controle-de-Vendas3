@@ -1,0 +1,491 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#173b70">
+<title>Meu Controle de Vendas</title>
+<style>
+:root{--bg:#f2f5fa;--card:#fff;--text:#17243a;--muted:#718096;--line:#e1e7f0;--blue:#245fce;--green:#07845d;--red:#d13d50;--nav:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif;padding-bottom:85px}
+body.dark{--bg:#101827;--card:#1b283b;--text:#f1f5fb;--muted:#a7b5ca;--line:#35445a;--blue:#6895ff;--green:#4dd5a3;--red:#ff8796;--nav:#172337}
+header{background:linear-gradient(130deg,#102849,#2867d8);color:white;padding:17px 15px 20px;border-radius:0 0 22px 22px}
+.headrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+header h1{font-size:20px;margin:0 0 5px}
+header p{font-size:12px;margin:0;opacity:.9}
+.iconbtn{border:1px solid #ffffff55;background:#ffffff1b;color:white;border-radius:12px;padding:10px;font-size:18px;min-width:42px}
+main{max-width:700px;margin:auto;padding:11px}
+.page{display:none}.page.active{display:block}
+.box{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:13px;margin-bottom:10px}
+h2{font-size:15px;margin:0 0 11px}
+label{display:block;font-size:11px;font-weight:bold;color:var(--muted);margin:8px 0 5px}
+input,select{width:100%;min-width:0;min-height:40px;padding:8px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--text);font-size:14px}
+button{font-family:inherit;cursor:pointer;border:0;border-radius:10px;padding:10px;font-weight:bold}
+.primary{background:var(--blue);color:white;width:100%;margin-top:10px}
+.secondary{background:#e8efff;color:#214d96}
+body.dark .secondary{background:#2b3e5b;color:white}
+.danger{background:#ffebee;color:#b52e42}
+body.dark .danger{background:#4b2937;color:#ffdce2}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.grid3{display:grid;grid-template-columns:1.1fr .65fr .85fr;gap:7px}
+.metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.metric{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:11px;min-width:0}
+.metric small{display:block;color:var(--muted);font-size:11px;margin-bottom:7px}
+.metric strong{font-size:clamp(15px,4vw,19px);overflow-wrap:anywhere}
+.bluetop{border-top:3px solid #3478ee}.greentop{border-top:3px solid #0ba879}.redtop{border-top:3px solid #e44e63}.goldtop{border-top:3px solid #d99a21}
+.product{border-radius:13px;padding:12px;background:#245fce;color:white;margin-bottom:10px}
+.product label{color:white}.product input{background:white;color:#182438}
+.muted{font-size:11px;line-height:1.5;color:var(--muted)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.row>*{min-width:0}
+.moneygood{color:var(--green)}.moneybad{color:var(--red)}
+.progress{height:10px;border-radius:20px;background:var(--line);overflow:hidden;margin:10px 0}
+.progress div{height:100%;width:0;background:linear-gradient(90deg,#2864dc,#0ba879)}
+.entry{display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}
+.entry:last-child{border:0}
+.entry strong{font-size:12px;overflow-wrap:anywhere}
+.entry small{display:block;color:var(--muted);font-size:11px;margin-top:4px}
+.entry button{padding:6px;font-size:10px;margin-top:5px}
+.navbottom{position:fixed;bottom:0;left:0;right:0;background:var(--nav);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,1fr);padding:7px 8px calc(7px + env(safe-area-inset-bottom));z-index:5}
+.navbottom button{background:transparent;color:var(--muted);font-size:11px;padding:5px}
+.navbottom button span{display:block;font-size:21px;margin-bottom:3px}
+.navbottom button.active{color:var(--blue)}
+.empty{text-align:center;color:var(--muted);font-size:12px;padding:12px}
+canvas{width:100%;height:190px;display:block}
+@media(min-width:520px){.metrics{grid-template-columns:repeat(4,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<header>
+ <div class="headrow">
+  <div><h1>Meu Controle de Vendas</h1><p>Vendas • Gastos • Lucro • Horas • Metas</p></div>
+  <button class="iconbtn" id="themeBtn" aria-label="Alternar tema">☾</button>
+ </div>
+</header>
+
+<main>
+<section id="home" class="page active">
+ <div class="box">
+  <div class="row"><h2 style="margin:0">Resumo do dia</h2><span id="weekday" class="muted"></span></div>
+  <div class="grid3">
+   <div><label for="dayMonth">Mês</label><select id="dayMonth"></select></div>
+   <div><label for="dayNumber">Dia</label><select id="dayNumber"></select></div>
+   <div><label for="dayYear">Ano</label><select id="dayYear"></select></div>
+  </div>
+  <p class="muted" id="dateText"></p>
+ </div>
+
+ <div class="product">
+  <label for="products">O QUE EU VENDI HOJE?</label>
+  <input id="products" placeholder="Ex.: brigadeiro, paçoca, balinhas">
+  <button id="saveProducts" style="background:white;color:#214d96;width:100%;margin-top:8px">Salvar produtos</button>
+ </div>
+
+ <div class="metrics">
+  <div class="metric bluetop"><small>Vendas do dia</small><strong id="dSales">R$ 0,00</strong></div>
+  <div class="metric redtop"><small>Gastos do dia</small><strong id="dExpenses">R$ 0,00</strong></div>
+  <div class="metric greentop"><small>Lucro líquido</small><strong id="dProfit">R$ 0,00</strong></div>
+  <div class="metric goldtop"><small>Lucro por hora</small><strong id="dPerHour">—</strong></div>
+ </div>
+
+ <div class="box">
+  <h2>Vendas e gastos do dia</h2>
+  <div class="grid2">
+   <div><label for="salesTotal">Vendas totais (R$)</label><input id="salesTotal" type="number" min="0" step=".01" placeholder="0,00"></div>
+   <div><label for="expensesTotal">Gastos totais (R$)</label><input id="expensesTotal" type="number" min="0" step=".01" placeholder="0,00"></div>
+  </div>
+  <button class="primary" id="saveTotals">Salvar valores do dia</button>
+  <p class="muted">Use os totais ou os lançamentos individuais. Não registre o mesmo valor nos dois lugares para evitar duplicidade.</p>
+ </div>
+
+ <div class="box">
+  <h2>Horas de trabalho</h2>
+  <div class="grid2">
+   <div><label for="startTime">Entrada</label><input id="startTime" type="time"></div>
+   <div><label for="endTime">Saída</label><input id="endTime" type="time"></div>
+  </div>
+  <label for="breakMinutes">Pausas em minutos</label>
+  <input id="breakMinutes" type="number" min="0" step="1" placeholder="Ex.: 30">
+  <p class="muted" id="hoursText">Horas trabalhadas: —</p>
+  <button class="primary" id="saveHours">Salvar horário</button>
+ </div>
+
+ <div class="box">
+  <h2>Registrar venda</h2>
+  <label for="saleName">Produto</label><input id="saleName" placeholder="Nome do produto">
+  <div class="grid2">
+   <div><label for="saleQty">Quantidade</label><input id="saleQty" type="number" min="1" value="1"></div>
+   <div><label for="saleValue">Valor total (R$)</label><input id="saleValue" type="number" min=".01" step=".01" placeholder="0,00"></div>
+  </div>
+  <button class="primary" id="addSale">Adicionar venda</button>
+ </div>
+
+ <div class="box">
+  <h2>Registrar gasto</h2>
+  <label for="expenseName">Descrição do gasto</label><input id="expenseName" placeholder="Ex.: mercadoria, embalagem, transporte">
+  <label for="expenseValue">Valor (R$)</label><input id="expenseValue" type="number" min=".01" step=".01" placeholder="0,00">
+  <button class="primary" id="addExpense">Adicionar gasto</button>
+ </div>
+
+ <div class="box">
+  <h2>Meta deste mês</h2>
+  <div class="row"><span class="muted" id="homeGoalMonth"></span><strong id="homeGoalValue">Não definida</strong></div>
+  <div class="progress"><div id="homeGoalBar"></div></div>
+  <p class="muted" id="homeGoalText">Abra a tela Mês para definir sua meta.</p>
+  <button class="secondary" style="width:100%" id="goGoal">Definir ou alterar meta</button>
+ </div>
+
+ <div class="box"><h2>Movimentações do dia</h2><div id="dayList"></div></div>
+</section>
+
+<section id="monthPage" class="page">
+ <div class="box">
+  <h2>Resumo mensal</h2>
+  <div class="grid2">
+   <div><label for="monthChoice">Mês</label><select id="monthChoice"></select></div>
+   <div><label for="yearChoice">Ano</label><select id="yearChoice"></select></div>
+  </div>
+  <p class="muted" id="monthTitle"></p>
+ </div>
+
+ <div class="metrics">
+  <div class="metric bluetop"><small>Total de vendas</small><strong id="mSales">R$ 0,00</strong></div>
+  <div class="metric redtop"><small>Total de gastos</small><strong id="mExpenses">R$ 0,00</strong></div>
+  <div class="metric greentop"><small>Lucro líquido</small><strong id="mProfit">R$ 0,00</strong></div>
+  <div class="metric goldtop"><small>Dias registrados</small><strong id="mDays">0</strong></div>
+  <div class="metric bluetop"><small>Horas trabalhadas</small><strong id="mHours">—</strong></div>
+  <div class="metric greentop"><small>Lucro médio por dia</small><strong id="mAvgDay">—</strong></div>
+  <div class="metric goldtop"><small>Lucro médio por hora</small><strong id="mAvgHour">—</strong></div>
+  <div class="metric redtop"><small>Falta para a meta</small><strong id="mLeft">—</strong></div>
+ </div>
+
+ <div class="box">
+  <h2>Definir meta do mês</h2>
+  <p class="muted">Cada mês tem sua própria meta de lucro líquido, salva separadamente.</p>
+  <label for="goalInput">Minha meta de lucro líquido (R$)</label>
+  <input id="goalInput" type="number" min="0" step=".01" placeholder="Ex.: 10000">
+  <button class="primary" id="saveGoal">Salvar meta deste mês</button>
+  <div class="row" style="margin-top:14px"><span class="muted">Lucro atual</span><strong id="goalCurrent">R$ 0,00</strong></div>
+  <div class="progress"><div id="goalBar"></div></div>
+  <p id="goalStatus" class="muted">Defina sua meta.</p>
+  <p id="goalDaily" class="muted"></p>
+ </div>
+
+ <div class="box">
+  <h2>Gráfico do mês</h2>
+  <canvas id="chart" width="700" height="220"></canvas>
+  <p class="muted">Azul: vendas. Vermelho: gastos. Verde: lucro positivo. Os números indicam os dias do mês.</p>
+ </div>
+
+ <div class="box"><h2>Todos os dias do mês</h2><div id="monthList"></div></div>
+</section>
+
+<section id="settingsPage" class="page">
+ <div class="box">
+  <h2>Aparência</h2><p class="muted">Alterne entre modo claro e escuro. A preferência fica salva neste aparelho.</p>
+  <button class="primary" id="themeSettings">Alternar modo claro/escuro</button>
+ </div>
+ <div class="box">
+  <h2>Backup dos dados</h2><p class="muted">Exporte uma cópia dos registros para guardar ou restaurar depois.</p>
+  <button class="primary" id="export">Exportar backup</button>
+  <button class="secondary" id="importButton" style="width:100%;margin-top:8px">Restaurar backup</button>
+  <input id="importFile" type="file" accept=".json,application/json" hidden>
+ </div>
+ <div class="box">
+  <h2>Apagar registros</h2><p class="muted">Apaga vendas, gastos, horários e metas salvas neste aparelho.</p>
+  <button class="danger" id="clear">Apagar todos os dados</button>
+ </div>
+ <p class="muted" style="text-align:center">Os dados ficam neste navegador ou ambiente do aplicativo. Faça backups regularmente.</p>
+</section>
+</main>
+
+<nav class="navbottom" aria-label="Navegação principal">
+ <button class="active" data-page="home"><span>⌂</span>Início</button>
+ <button data-page="monthPage"><span>▦</span>Mês</button>
+ <button data-page="settingsPage"><span>⚙</span>Configurações</button>
+</nav>
+
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const KEY="controleVendasProfissionalV2";
+const THEME="controleVendasTemaV2";
+const months=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const emptyDB=()=>({days:{},sales:[],expenses:[],hours:{},goals:{}});
+let db=emptyDB();
+
+try{
+ const raw=localStorage.getItem(KEY);
+ if(raw){
+  const x=JSON.parse(raw);
+  db={days:x.days||{},sales:Array.isArray(x.sales)?x.sales:[],expenses:Array.isArray(x.expenses)?x.expenses:[],hours:x.hours||{},goals:x.goals||{}};
+ }
+}catch(e){}
+
+const money=n=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(Number(n)||0);
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(db));return true;}catch(e){alert("Não foi possível salvar. Faça um backup e verifique o armazenamento.");return false;}};
+const today=()=>{const d=new Date();return {y:Math.max(2026,Math.min(2060,d.getFullYear())),m:d.getMonth(),d:d.getDate()};};
+const date=()=>`${$("dayYear").value}-${String(Number($("dayMonth").value)+1).padStart(2,"0")}-${String($("dayNumber").value).padStart(2,"0")}`;
+const monthKey=()=>`${$("yearChoice").value}-${String(Number($("monthChoice").value)+1).padStart(2,"0")}`;
+const monthDates=k=>{const [y,m]=k.split("-").map(Number);return Array.from({length:new Date(y,m,0).getDate()},(_,i)=>`${k}-${String(i+1).padStart(2,"0")}`);};
+function day(k){if(!db.days[k]||typeof db.days[k]!=="object")db.days[k]={product:"",sales:0,expenses:0};return db.days[k];}
+function total(k){const d=day(k);return {sales:Number(d.sales||0)+db.sales.filter(x=>x.date===k).reduce((a,x)=>a+Number(x.value||0),0),expenses:Number(d.expenses||0)+db.expenses.filter(x=>x.date===k).reduce((a,x)=>a+Number(x.value||0),0)};}
+function hours(k){
+ const h=db.hours[k];if(!h||!h.start||!h.end)return null;
+ const [a,b]=h.start.split(":").map(Number),[c,d]=h.end.split(":").map(Number);
+ let mins=c*60+d-(a*60+b);if(mins<0)mins+=1440;
+ mins-=Number(h.breaks||0);return Math.max(0,mins/60);
+}
+const fmtHours=n=>n===null?"—":`${Math.floor(Math.round(n*60)/60)}h${String(Math.round(n*60)%60).padStart(2,"0")}min`;
+
+function populate(){
+ months.forEach((m,i)=>{$("dayMonth").add(new Option(m,i));$("monthChoice").add(new Option(m,i));});
+ for(let y=2026;y<=2060;y++){$("dayYear").add(new Option(y,y));$("yearChoice").add(new Option(y,y));}
+ const t=today();
+ $("dayMonth").value=$("monthChoice").value=t.m;
+ $("dayYear").value=$("yearChoice").value=t.y;
+ fillDays(t.d);
+}
+function fillDays(preferred){
+ const y=Number($("dayYear").value),m=Number($("dayMonth").value);
+ const count=new Date(y,m+1,0).getDate(),old=Number($("dayNumber").value)||preferred||1;
+ $("dayNumber").replaceChildren();
+ for(let i=1;i<=count;i++)$("dayNumber").add(new Option(i,i));
+ $("dayNumber").value=String(Math.min(old,count));
+}
+function applyTheme(dark){
+ document.body.classList.toggle("dark",dark);
+ $("themeBtn").textContent=dark?"☀":"☾";
+ const meta=document.querySelector('meta[name="theme-color"]');
+ if(meta)meta.content=dark?"#101827":"#173b70";
+ try{localStorage.setItem(THEME,dark?"dark":"light");}catch(e){}
+ drawChart();
+}
+function switchTheme(){applyTheme(!document.body.classList.contains("dark"));}
+$("themeBtn").onclick=switchTheme;
+$("themeSettings").onclick=switchTheme;
+try{applyTheme(localStorage.getItem(THEME)==="dark");}catch(e){applyTheme(false);}
+
+function openPage(id){
+ document.querySelectorAll(".page").forEach(x=>x.classList.toggle("active",x.id===id));
+ document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===id));
+ if(id==="monthPage")renderMonth();
+}
+document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>openPage(b.dataset.page));
+$("goGoal").onclick=()=>openPage("monthPage");
+$("dayMonth").onchange=()=>{fillDays(1);renderAll();};
+$("dayYear").onchange=()=>{fillDays(Number($("dayNumber").value)||1);renderAll();};
+$("dayNumber").onchange=renderAll;
+
+function renderDay(){
+ const k=date(),d=day(k),t=total(k),h=hours(k),dt=new Date(k+"T12:00:00");
+ $("dateText").textContent=dt.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+ $("weekday").textContent=dt.toLocaleDateString("pt-BR",{weekday:"short"});
+ $("products").value=d.product||"";
+ $("salesTotal").value=d.sales||"";
+ $("expensesTotal").value=d.expenses||"";
+ $("dSales").textContent=money(t.sales);
+ $("dExpenses").textContent=money(t.expenses);
+ $("dProfit").textContent=money(t.sales-t.expenses);
+ $("dProfit").className=t.sales-t.expenses<0?"moneybad":"moneygood";
+ $("dPerHour").textContent=h>0?money((t.sales-t.expenses)/h):"—";
+ const wh=db.hours[k]||{};
+ $("startTime").value=wh.start||"";
+ $("endTime").value=wh.end||"";
+ $("breakMinutes").value=wh.breaks??"";
+ updateHours();renderDayList();renderHomeGoal();
+}
+function updateHours(){
+ const a=$("startTime").value,b=$("endTime").value;
+ if(!a||!b){$("hoursText").textContent="Horas trabalhadas: —";return;}
+ const [h,m]=a.split(":").map(Number),[x,y]=b.split(":").map(Number);
+ let n=x*60+y-(h*60+m);if(n<0)n+=1440;
+ n=Math.max(0,n-(Number($("breakMinutes").value)||0));
+ $("hoursText").textContent="Total de trabalho: "+fmtHours(n/60);
+}
+["startTime","endTime","breakMinutes"].forEach(id=>$(id).oninput=updateHours);
+
+$("saveHours").onclick=()=>{
+ const a=$("startTime").value,b=$("endTime").value,br=Number($("breakMinutes").value)||0;
+ if((a&&!b)||(!a&&b)){alert("Preencha a entrada e a saída.");return;}
+ if(br<0||br>1440){alert("Confira o tempo de pausa.");return;}
+ if(a&&b){
+  const [h,m]=a.split(":").map(Number),[x,y]=b.split(":").map(Number);
+  let n=x*60+y-(h*60+m);if(n<0)n+=1440;
+  if(br>n){alert("A pausa não pode ser maior que o tempo trabalhado.");return;}
+ }
+ db.hours[date()]={start:a,end:b,breaks:br};save();renderAll();
+};
+$("saveProducts").onclick=()=>{day(date()).product=$("products").value.trim();save();renderAll();};
+$("saveTotals").onclick=()=>{
+ const s=Number($("salesTotal").value)||0,e=Number($("expensesTotal").value)||0;
+ if(s<0||e<0){alert("Os valores não podem ser negativos.");return;}
+ day(date()).sales=s;day(date()).expenses=e;save();renderAll();
+};
+function makeId(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+$("addSale").onclick=()=>{
+ const name=$("saleName").value.trim(),qty=Number($("saleQty").value),value=Number($("saleValue").value);
+ if(!name||!Number.isInteger(qty)||qty<1||value<=0){alert("Informe produto, quantidade e valor válido.");return;}
+ db.sales.push({id:makeId(),date:date(),name,qty,value});
+ const p=day(date()).product.split(",").map(s=>s.trim()).filter(Boolean);
+ if(!p.includes(name))p.push(name);
+ day(date()).product=p.join(", ");
+ $("saleName").value="";$("saleValue").value="";$("saleQty").value="1";
+ save();renderAll();
+};
+$("addExpense").onclick=()=>{
+ const name=$("expenseName").value.trim(),value=Number($("expenseValue").value);
+ if(!name||value<=0){alert("Informe a descrição e um valor válido.");return;}
+ db.expenses.push({id:makeId(),date:date(),name,value});
+ $("expenseName").value="";$("expenseValue").value="";
+ save();renderAll();
+};
+
+function renderDayList(){
+ const root=$("dayList");root.replaceChildren();
+ const k=date();
+ const list=[
+  ...db.sales.filter(x=>x.date===k).map(x=>({...x,type:"sale"})),
+  ...db.expenses.filter(x=>x.date===k).map(x=>({...x,type:"expense"}))
+ ].reverse();
+ if(!list.length){root.innerHTML='<div class="empty">Nenhum lançamento individual neste dia.</div>';return;}
+ list.forEach(x=>{
+  const row=document.createElement("div");row.className="entry";
+  const left=document.createElement("div"),title=document.createElement("strong");
+  title.textContent=(x.type==="sale"?"Venda: ":"Gasto: ")+x.name;
+  const detail=document.createElement("small");
+  detail.textContent=x.type==="sale"?"Quantidade: "+x.qty:"Gasto registrado";
+  left.append(title,detail);
+  const right=document.createElement("div");right.style.textAlign="right";
+  const val=document.createElement("strong");val.textContent=money(x.value);val.className=x.type==="sale"?"moneygood":"moneybad";
+  const edit=document.createElement("button");edit.className="secondary";edit.textContent="Editar";
+  edit.onclick=()=>{
+   const answer=prompt("Digite o novo valor total:",String(x.value));if(answer===null)return;
+   const v=Number(answer.replace(",","."));
+   if(!Number.isFinite(v)||v<=0){alert("Digite um valor válido.");return;}
+   const arr=x.type==="sale"?db.sales:db.expenses,found=arr.find(z=>z.id===x.id);
+   if(found)found.value=v;save();renderAll();
+  };
+  const del=document.createElement("button");del.className="danger";del.textContent="Excluir";
+  del.onclick=()=>{
+   if(!confirm("Excluir este lançamento?"))return;
+   if(x.type==="sale")db.sales=db.sales.filter(z=>z.id!==x.id);
+   else db.expenses=db.expenses.filter(z=>z.id!==x.id);
+   save();renderAll();
+  };
+  right.append(val,document.createElement("br"),edit,del);row.append(left,right);root.append(row);
+ });
+}
+function renderHomeGoal(){
+ const k=date().slice(0,7),g=Number(db.goals[k])||0;
+ const profit=monthDates(k).reduce((s,d)=>{const t=total(d);return s+t.sales-t.expenses;},0);
+ $("homeGoalMonth").textContent=months[Number(k.slice(5))-1]+" de "+k.slice(0,4);
+ $("homeGoalValue").textContent=g?money(g):"Não definida";
+ $("homeGoalBar").style.width=g?Math.max(0,Math.min(100,profit/g*100))+"%":"0%";
+ $("homeGoalText").textContent=g?money(profit)+" de "+money(g)+" de lucro líquido acumulado.":"Defina sua meta na tela Mês.";
+}
+
+$("monthChoice").onchange=renderMonth;
+$("yearChoice").onchange=renderMonth;
+$("saveGoal").onclick=()=>{
+ const v=Number($("goalInput").value);
+ if(!Number.isFinite(v)||v<0){alert("Digite uma meta válida.");return;}
+ db.goals[monthKey()]=v;save();renderAll();
+};
+function renderMonth(){
+ const k=monthKey(),dates=monthDates(k);let s=0,e=0,h=0,n=0;
+ dates.forEach(d=>{
+  const t=total(d),hr=hours(d);s+=t.sales;e+=t.expenses;
+  if(hr!==null)h+=hr;
+  if(t.sales||t.expenses||(hr!==null&&hr>0)||day(d).product)n++;
+ });
+ const p=s-e,g=Number(db.goals[k])||0,left=Math.max(0,g-p);
+ $("monthTitle").textContent=months[Number(k.slice(5))-1]+" de "+k.slice(0,4);
+ $("mSales").textContent=money(s);$("mExpenses").textContent=money(e);$("mProfit").textContent=money(p);
+ $("mDays").textContent=n;$("mHours").textContent=h?fmtHours(h):"—";
+ $("mAvgDay").textContent=n?money(p/n):"—";$("mAvgHour").textContent=h?money(p/h):"—";
+ $("mLeft").textContent=money(left);$("goalInput").value=g||"";$("goalCurrent").textContent=money(p);
+ const percent=g?Math.max(0,Math.min(100,p/g*100)):0;
+ $("goalBar").style.width=percent+"%";
+ $("goalStatus").textContent=!g?"Defina sua meta mensal.":p>=g?"Meta alcançada!":percent.toFixed(1).replace(".",",")+"% da meta alcançada.";
+ const now=new Date(),todayKey=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+ const current=now.getFullYear()===Number(k.slice(0,4))&&now.getMonth()===Number(k.slice(5))-1;
+ const recorded=dates.filter(d=>{const t=total(d),hr=hours(d);return t.sales||t.expenses||(hr!==null&&hr>0)||day(d).product;});
+ const available=dates.filter(d=>!recorded.includes(d)&&(!current||d>=todayKey)).length;
+ $("goalDaily").textContent=g&&p<g?"Faltam "+money(left)+". Média por dia ainda disponível: "+money(left/Math.max(1,available))+".":"";
+ renderMonthList(k);drawChart();
+}
+function renderMonthList(k){
+ const root=$("monthList");root.replaceChildren();
+ const dates=monthDates(k).reverse().filter(d=>{const t=total(d),hr=hours(d);return t.sales||t.expenses||(hr!==null&&hr>0)||day(d).product;});
+ if(!dates.length){root.innerHTML='<div class="empty">Nenhum registro neste mês.</div>';return;}
+ dates.forEach(d=>{
+  const t=total(d),h=hours(d),row=document.createElement("div");row.className="entry";
+  const left=document.createElement("div"),title=document.createElement("strong");
+  title.textContent=d.split("-").reverse().join("/")+(day(d).product?" • "+day(d).product:"");
+  const sub=document.createElement("small");sub.textContent="Vendas "+money(t.sales)+" • Gastos "+money(t.expenses)+" • Horas "+(h===null?"—":fmtHours(h));
+  left.append(title,sub);
+  const right=document.createElement("div");right.style.textAlign="right";
+  const val=document.createElement("strong");val.textContent=money(t.sales-t.expenses);val.className=t.sales-t.expenses<0?"moneybad":"moneygood";
+  const btn=document.createElement("button");btn.className="secondary";btn.textContent="Abrir";
+  btn.onclick=()=>{
+   const [y,m,dn]=d.split("-").map(Number);
+   $("dayYear").value=y;$("dayMonth").value=m-1;fillDays(dn);$("dayNumber").value=dn;
+   renderAll();openPage("home");
+  };
+  right.append(val,document.createElement("br"),btn);row.append(left,right);root.append(row);
+ });
+}
+function drawChart(){
+ const c=$("chart");if(!c)return;
+ const ctx=c.getContext("2d");if(!ctx)return;
+ const k=monthKey(),dates=monthDates(k),w=c.width,h=c.height;
+ ctx.clearRect(0,0,w,h);
+ const vals=dates.map(d=>{const t=total(d);return[t.sales,t.expenses,Math.max(0,t.sales-t.expenses)];});
+ const max=Math.max(1,...vals.flat()),L=38,R=7,T=12,B=24,cw=w-L-R,ch=h-T-B;
+ const css=getComputedStyle(document.body);
+ ctx.strokeStyle=css.getPropertyValue("--line");ctx.fillStyle=css.getPropertyValue("--muted");ctx.font="10px Arial";
+ for(let i=0;i<=4;i++){const y=T+ch*i/4;ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(w-R,y);ctx.stroke();ctx.fillText(String(Math.round(max*(1-i/4))),2,y+3);}
+ const slot=cw/dates.length,bw=Math.max(1,Math.min(7,slot*.23));
+ vals.forEach((arr,i)=>{
+  const x=L+slot*i+slot/2;
+  arr.forEach((v,j)=>{ctx.fillStyle=["#2864dc","#d13d50","#07845d"][j];const bh=v/max*ch;ctx.fillRect(x+(j-1)*(bw+1)-bw/2,T+ch-bh,bw,bh);});
+  if(dates.length<=15||i%Math.ceil(dates.length/10)===0){ctx.fillStyle=css.getPropertyValue("--muted");ctx.fillText(String(i+1),x-3,h-7);}
+ });
+}
+window.addEventListener("resize",()=>{if($("monthPage").classList.contains("active"))drawChart();});
+
+$("export").onclick=()=>{
+ try{
+  const blob=new Blob([JSON.stringify({app:"Controle de Vendas",data:db},null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download="backup-controle-vendas.json";document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+ }catch(e){alert("Não foi possível exportar o backup neste ambiente.");}
+};
+$("importButton").onclick=()=>$("importFile").click();
+$("importFile").onchange=async e=>{
+ const f=e.target.files[0];if(!f)return;
+ try{
+  const j=JSON.parse(await f.text()),x=j.data||j;
+  if(!Array.isArray(x.sales)||!Array.isArray(x.expenses)||!x.days||!x.hours||!x.goals)throw Error();
+  if(!confirm("Restaurar o backup e substituir os registros atuais?"))return;
+  db={days:x.days,sales:x.sales,expenses:x.expenses,hours:x.hours,goals:x.goals};
+  if(!save())return;
+  renderAll();alert("Backup restaurado.");
+ }catch(err){alert("Arquivo de backup inválido.");}
+ finally{e.target.value="";}
+};
+$("clear").onclick=()=>{
+ if(!confirm("Apagar todos os registros e metas? Esta ação não pode ser desfeita."))return;
+ db=emptyDB();save();renderAll();
+};
+function renderAll(){renderDay();renderMonth();}
+populate();renderAll();
+})();
+</script>
+</body>
+</html>
